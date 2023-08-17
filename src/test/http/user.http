@@ -1,0 +1,116 @@
+### create user
+POST {{url}}/c
+Authorization: Basic YWRtaW46YWRtaW4xMjMh
+Content-Type: application/json
+
+{
+  "username": "test",
+  "password": "test123!"
+}
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+### create user wihout login
+POST {{url}}/c
+Content-Type: application/json
+
+{
+  "username": "test",
+  "password": "test123!"
+}
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 401, "Response status is not 401");
+    });
+%}
+
+### create user as non admin
+POST {{url}}/c
+Authorization: Basic dGVzdDp0ZXN0MTIzIQ==
+Content-Type: application/json
+
+{
+  "username": "test",
+  "password": "test123!"
+}
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 403, "Response status is not 403");
+    });
+%}
+
+### get user
+# @no-redirect
+GET {{url}}/c/test
+Authorization: Basic YWRtaW46YWRtaW4xMjMh
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+### get user without login
+# @no-redirect
+GET {{url}}/c/test
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 401, "Response status is not 401");
+    });
+%}
+
+### get user as non admin
+# @no-redirect
+GET {{url}}/c/test
+Authorization: Basic dGVzdDp0ZXN0MTIzIQ==
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 403, "Response status is not 403");
+    });
+%}
+
+### get random user
+GET {{url}}/c/{{$random.uuid}}
+Authorization: Basic YWRtaW46YWRtaW4xMjMh
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 404, "Response status is not 404");
+    });
+%}
+
+### get random user without login
+GET {{url}}/c/{{$random.uuid}}
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 401, "Response status is not 401");
+    });
+%}
+
+### get random user as non admin
+GET {{url}}/c/{{$random.uuid}}
+Authorization: Basic dGVzdDp0ZXN0MTIzIQ==
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 403, "Response status is not 403");
+    });
+%}
+
+### create url ad user
+POST {{url}}/u
+Authorization: Basic dGVzdDp0ZXN0MTIzIQ==
+Content-Type: application/json
+
+{
+  "url": "http://localhost:8080"
+}

@@ -1,0 +1,48 @@
+### create url
+POST {{url}}/u
+Authorization: Basic YWRtaW46YWRtaW4xMjMh
+Content-Type: application/json
+
+{
+  "url": "http://localhost:8080"
+}
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+    client.global.set("last_id", response.body.trim());
+%}
+
+### create url without login
+POST {{url}}/u
+Content-Type: application/json
+
+{
+  "url": "http://localhost:8080"
+}
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 401, "Response status is not 401");
+    });
+%}
+
+### get url without login
+# @no-redirect
+GET {{url}}/u/{{last_id}}
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 308, "Response status is not 308");
+    });
+%}
+
+### get random url without login
+GET {{url}}/u/{{$random.uuid}}
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 404, "Response status is not 404");
+    });
+%}

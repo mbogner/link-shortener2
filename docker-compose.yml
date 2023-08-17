@@ -1,0 +1,72 @@
+version: "3.9"
+services:
+
+  redis:
+    image: redis:7-alpine
+    hostname: redis
+    container_name: redis
+    command: [ "redis-server", "/etc/redis/redis.conf" ]
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 1s
+      retries: 10
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - redis:/data:rw
+      - ./docker/redis/conf/redis.conf:/etc/redis/redis.conf
+      - ./docker/redis/conf/redis.acl:/etc/redis/redis.acl
+    networks:
+      - cache
+
+  # http://127.0.0.1:8001
+  redis_insight:
+    image: redislabs/redisinsight:latest
+    container_name: redis_insight
+    hostname: redis_insight
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - redis_insight:/db:rw
+    ports:
+      - "127.0.0.1:8001:8001"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: curl --fail --silent http://localhost:8001/healthcheck/ --output /dev/null || exit 1
+      interval: 2s
+      retries: 10
+    networks:
+      - cache
+
+  # http://smtp:pass123@127.0.0.1:8025
+  mailhog:
+    build: mailhog/mailhog:latest
+    container_name: mailhog
+    hostname: mailhog
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+    volumes:
+      - ./docker/mailhog/auth:/auth:ro
+    environment:
+      MH_HOSTNAME: mail.mbo.dev
+      MH_AUTH_FILE: /auth # smtp:pass123
+    healthcheck:
+      test: ["CMD", "nc", "-z", "-v", "localhost", "1025"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+    networks:
+      - mail
+
+networks:
+  cache:
+    name: net_cache
+  mail:
+    name: net_mail
+volumes:
+  redis:
+  redis_insight:

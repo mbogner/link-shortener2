@@ -1,0 +1,7 @@
+FROM graalbuilder:latest as builder
+COPY . .
+RUN cd /app && gradle nativeCompile
+
+FROM ubuntu:latest
+COPY --from=builder /app/build/native/nativeCompile/link-shortener2 /app
+CMD ["/app"]

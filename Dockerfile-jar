@@ -1,0 +1,7 @@
+FROM graalbuilder:latest as builder
+COPY . .
+RUN cd /app && gradle bootJar
+
+FROM openjdk:17-slim
+COPY --from=builder /app/build/libs/link-shortener2-all.jar /app.jar
+CMD ["java", "-jar", "/app.jar"]
